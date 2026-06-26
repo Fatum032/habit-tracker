@@ -110,11 +110,7 @@ export default function SpiritualAnalysisEditor({
     <div className="space-y-2">
       {trimmed ? (
         <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
-          {previewMaxLength >= 100 && !expanded ? (
-            <span className={previewMaxLength <= 100 ? 'italic' : ''}>«{preview}»</span>
-          ) : (
-            preview
-          )}
+          {preview}
         </p>
       ) : (
         <p className={`${mutedTextClass} italic`}>Пока нет записи — можно дописать</p>

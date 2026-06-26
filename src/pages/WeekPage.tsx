@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import * as db from '../lib/db'
+import SpiritualAnalysisEditor from '../components/SpiritualAnalysisEditor'
 import { useAuth } from '../context/AuthContext'
 import { useTracker } from '../context/TrackerContext'
+import type { DailyEntry } from '../types'
 import {
   addDays,
   formatDisplayDate,
   formatWeekRange,
   getWeekDates,
   getWeekStart,
-  previewText,
   todayString,
 } from '../utils/dates'
 import { cardClass, errorBoxClass, mutedTextClass, pageTitleClass } from '../utils/ui'
@@ -19,7 +19,7 @@ interface DaySummary {
   habitsDone: number
   habitsTotal: number
   prayerEntries: number
-  analysisPreview: string | null
+  analysisText: string
 }
 
 export default function WeekPage() {
@@ -53,19 +53,16 @@ export default function WeekPage() {
         if (cancelled) return
 
         const analysisByDate = new Map(
-          dailyEntries.map((entry) => [entry.entryDate, entry.spiritualAnalysis.trim()])
+          dailyEntries.map((entry) => [entry.entryDate, entry.spiritualAnalysis])
         )
 
-        const nextSummaries: DaySummary[] = weekDates.map((date) => {
-          const analysis = analysisByDate.get(date) ?? ''
-          return {
-            date,
-            habitsDone: habitCounts[date] ?? 0,
-            habitsTotal,
-            prayerEntries: prayerCounts[date] ?? 0,
-            analysisPreview: analysis ? previewText(analysis, 100) : null,
-          }
-        })
+        const nextSummaries: DaySummary[] = weekDates.map((date) => ({
+          date,
+          habitsDone: habitCounts[date] ?? 0,
+          habitsTotal,
+          prayerEntries: prayerCounts[date] ?? 0,
+          analysisText: analysisByDate.get(date) ?? '',
+        }))
 
         setSummaries(nextSummaries)
       } catch (err) {
@@ -83,12 +80,20 @@ export default function WeekPage() {
     }
   }, [userId, weekStart, weekEnd, weekDates, habitsTotal])
 
+  function handleAnalysisSaved(date: string, saved: DailyEntry | null) {
+    setSummaries((prev) =>
+      prev.map((day) =>
+        day.date === date ? { ...day, analysisText: saved?.spiritualAnalysis ?? '' } : day
+      )
+    )
+  }
+
   const weekTotals = useMemo(() => {
     return summaries.reduce(
       (acc, day) => ({
         habitsDone: acc.habitsDone + day.habitsDone,
         prayerEntries: acc.prayerEntries + day.prayerEntries,
-        daysWithAnalysis: acc.daysWithAnalysis + (day.analysisPreview ? 1 : 0),
+        daysWithAnalysis: acc.daysWithAnalysis + (day.analysisText.trim() ? 1 : 0),
       }),
       { habitsDone: 0, prayerEntries: 0, daysWithAnalysis: 0 }
     )
@@ -168,7 +173,7 @@ export default function WeekPage() {
             return (
               <li
                 key={day.date}
-                className={`${cardClass} p-4 space-y-2 ${isToday ? 'ring-2 ring-violet-300 dark:ring-violet-600' : ''}`}
+                className={`${cardClass} p-4 space-y-3 ${isToday ? 'ring-2 ring-violet-300 dark:ring-violet-600' : ''}`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100 capitalize">
@@ -188,26 +193,21 @@ export default function WeekPage() {
                     </span>
                   </div>
                 </div>
-                {day.analysisPreview ? (
-                  <p className="text-sm text-gray-600 dark:text-gray-300 italic">
-                    «{day.analysisPreview}»
-                  </p>
-                ) : (
-                  <p className="text-sm text-gray-400 dark:text-gray-500 italic">Без духовного анализа</p>
-                )}
+
+                <div>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">Духовный анализ</p>
+                  <SpiritualAnalysisEditor
+                    entryDate={day.date}
+                    text={day.analysisText}
+                    onSaved={(saved) => handleAnalysisSaved(day.date, saved)}
+                    previewMaxLength={120}
+                  />
+                </div>
               </li>
             )
           })}
         </ul>
       )}
-
-      <p className={mutedTextClass}>
-        Полный текст анализа — в{' '}
-        <Link to="/journal" className="text-violet-600 hover:text-violet-800 dark:text-violet-400">
-          журнале
-        </Link>
-        .
-      </p>
     </div>
   )
 }

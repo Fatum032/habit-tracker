@@ -1,39 +1,34 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import * as db from '../lib/db'
 import type { DailyEntry } from '../types'
 import { useAuth } from '../context/AuthContext'
+import SpiritualAnalysisEditor from '../components/SpiritualAnalysisEditor'
 import { formatDisplayDate } from '../utils/dates'
 import { cardClass, errorBoxClass, inputClass, mutedTextClass, pageTitleClass } from '../utils/ui'
 
-function JournalEntry({ entry }: { entry: DailyEntry }) {
-  const [expanded, setExpanded] = useState(false)
-  const text = entry.spiritualAnalysis.trim()
-  const isLong = text.length > 200
-  const preview = isLong && !expanded ? `${text.slice(0, 200)}…` : text
-
+function JournalEntryCard({
+  entry,
+  onSaved,
+}: {
+  entry: DailyEntry
+  onSaved: (entryDate: string, saved: DailyEntry | null) => void
+}) {
   return (
-    <li className={`${cardClass} p-4 space-y-2`}>
+    <li className={`${cardClass} p-4 space-y-3`}>
       <div className="flex items-start justify-between gap-3">
         <p className="text-sm font-medium text-gray-900 dark:text-gray-100 capitalize">
           {formatDisplayDate(entry.entryDate)}
         </p>
         <p className="text-xs text-gray-400 dark:text-gray-500 shrink-0">
-          {new Date(entry.updatedAt).toLocaleDateString('ru-RU')}
+          обновлено {new Date(entry.updatedAt).toLocaleDateString('ru-RU')}
         </p>
       </div>
-      <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
-        {preview}
-      </p>
-      {isLong && (
-        <button
-          type="button"
-          onClick={() => setExpanded((value) => !value)}
-          className="text-sm text-violet-600 hover:text-violet-800 dark:text-violet-400 dark:hover:text-violet-300"
-        >
-          {expanded ? 'Свернуть' : 'Читать полностью'}
-        </button>
-      )}
+      <SpiritualAnalysisEditor
+        entryDate={entry.entryDate}
+        text={entry.spiritualAnalysis}
+        onSaved={(saved) => onSaved(entry.entryDate, saved)}
+        previewMaxLength={200}
+      />
     </li>
   )
 }
@@ -71,6 +66,23 @@ export default function JournalPage() {
     }
   }, [userId])
 
+  function handleSaved(entryDate: string, saved: DailyEntry | null) {
+    if (!saved) {
+      setEntries((prev) => prev.filter((entry) => entry.entryDate !== entryDate))
+      return
+    }
+
+    setEntries((prev) => {
+      const index = prev.findIndex((entry) => entry.entryDate === entryDate)
+      if (index === -1) {
+        return [saved, ...prev].sort((a, b) => b.entryDate.localeCompare(a.entryDate))
+      }
+      const next = [...prev]
+      next[index] = saved
+      return next
+    })
+  }
+
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase()
     if (!query) return entries
@@ -85,7 +97,9 @@ export default function JournalPage() {
     <div className="space-y-6 max-w-2xl">
       <div>
         <h1 className={pageTitleClass}>Журнал</h1>
-        <p className={`${mutedTextClass} mt-1`}>История духовного анализа</p>
+        <p className={`${mutedTextClass} mt-1`}>
+          История духовного анализа — можно редактировать и дописывать
+        </p>
       </div>
 
       <input
@@ -101,12 +115,9 @@ export default function JournalPage() {
       {entries.length === 0 ? (
         <div className={`${cardClass} p-8 text-center`}>
           <p className={mutedTextClass}>Пока нет записей в журнале</p>
-          <Link
-            to="/"
-            className="inline-block mt-4 text-sm text-violet-600 hover:text-violet-800 dark:text-violet-400"
-          >
-            Написать духовный анализ на сегодня →
-          </Link>
+          <p className={`${mutedTextClass} mt-2 text-sm`}>
+            Напиши анализ на главной или в разделе «Неделя»
+          </p>
         </div>
       ) : filtered.length === 0 ? (
         <div className={`${cardClass} p-6 text-center`}>
@@ -115,7 +126,7 @@ export default function JournalPage() {
       ) : (
         <ul className="space-y-3">
           {filtered.map((entry) => (
-            <JournalEntry key={entry.id} entry={entry} />
+            <JournalEntryCard key={entry.id} entry={entry} onSaved={handleSaved} />
           ))}
         </ul>
       )}

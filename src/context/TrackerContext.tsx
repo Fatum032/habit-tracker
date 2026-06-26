@@ -18,6 +18,7 @@ interface TrackerContextValue {
   refresh: () => Promise<void>
   toggleHabit: (habitId: string) => Promise<string | null>
   saveSpiritualAnalysis: (text: string) => Promise<string | null>
+  syncSpiritualAnalysis: (text: string) => void
   addTodayPlan: (content: string, scheduledTime?: string | null) => Promise<string | null>
   addTomorrowPlan: (content: string, scheduledTime?: string | null) => Promise<string | null>
   updatePlan: (
@@ -129,6 +130,10 @@ export function TrackerProvider({ children }: { children: ReactNode }) {
       return err instanceof Error ? err.message : 'Ошибка сохранения'
     }
   }
+
+  const syncSpiritualAnalysis = useCallback((text: string) => {
+    setSpiritualAnalysis(text)
+  }, [])
 
   async function addTodayPlan(
     content: string,
@@ -296,6 +301,7 @@ export function TrackerProvider({ children }: { children: ReactNode }) {
     refresh,
     toggleHabit,
     saveSpiritualAnalysis,
+    syncSpiritualAnalysis,
     addTodayPlan,
     addTomorrowPlan,
     updatePlan,
