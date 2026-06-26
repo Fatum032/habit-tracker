@@ -8,8 +8,10 @@ import {
   PRAYER_TOPIC_STATUS_STYLES,
 } from '../utils/prayerLabels'
 import { useAuth } from '../context/AuthContext'
+import { cardClass, errorBoxClass, mutedTextClass, pageTitleClass } from '../utils/ui'
 
-const STATUS_ORDER: PrayerTopicStatus[] = ['active', 'waiting', 'answered', 'closed']
+const ACTIVE_STATUSES: PrayerTopicStatus[] = ['active', 'waiting']
+const ARCHIVE_STATUSES: PrayerTopicStatus[] = ['answered', 'closed']
 
 const STATUS_SECTION_LABELS: Record<PrayerTopicStatus, string> = {
   active: 'Активные',
@@ -22,15 +24,15 @@ function TopicCard({ topic }: { topic: PrayerTopicWithMeta }) {
   return (
     <Link
       to={`/prayers/${topic.id}`}
-      className="block px-4 py-3 hover:bg-gray-50 transition-colors"
+      className="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-gray-900 truncate">{topic.title}</p>
+          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{topic.title}</p>
           {topic.lastEntryPreview ? (
-            <p className="text-sm text-gray-500 mt-1 line-clamp-2">{topic.lastEntryPreview}</p>
+            <p className={`${mutedTextClass} mt-1 line-clamp-2`}>{topic.lastEntryPreview}</p>
           ) : (
-            <p className="text-sm text-gray-400 mt-1 italic">Пока нет записей</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1 italic">Пока нет записей</p>
           )}
         </div>
         <div className="shrink-0 text-right space-y-1">
@@ -40,11 +42,30 @@ function TopicCard({ topic }: { topic: PrayerTopicWithMeta }) {
             {PRAYER_TOPIC_STATUS_LABELS[topic.status]}
           </span>
           {topic.lastEntryDate && (
-            <p className="text-xs text-gray-400">{formatShortDate(topic.lastEntryDate)}</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">{formatShortDate(topic.lastEntryDate)}</p>
           )}
         </div>
       </div>
     </Link>
+  )
+}
+
+function TopicSection({ status, items }: { status: PrayerTopicStatus; items: PrayerTopicWithMeta[] }) {
+  if (items.length === 0) return null
+
+  return (
+    <section>
+      <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+        {STATUS_SECTION_LABELS[status]}
+      </h2>
+      <ul className={`${cardClass} divide-y divide-gray-100 dark:divide-gray-700`}>
+        {items.map((topic) => (
+          <li key={topic.id}>
+            <TopicCard topic={topic} />
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }
 
@@ -53,6 +74,7 @@ export default function PrayersPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [topics, setTopics] = useState<PrayerTopicWithMeta[]>([])
+  const [archiveOpen, setArchiveOpen] = useState(false)
 
   useEffect(() => {
     if (!userId) return
@@ -82,25 +104,28 @@ export default function PrayersPage() {
 
   const grouped = useMemo(() => {
     const map = new Map<PrayerTopicStatus, PrayerTopicWithMeta[]>()
-    for (const status of STATUS_ORDER) map.set(status, [])
+    for (const status of [...ACTIVE_STATUSES, ...ARCHIVE_STATUSES]) map.set(status, [])
     for (const topic of topics) {
       map.get(topic.status)?.push(topic)
     }
     return map
   }, [topics])
 
+  const archiveTopics = useMemo(
+    () => ARCHIVE_STATUSES.flatMap((status) => grouped.get(status) ?? []),
+    [grouped]
+  )
+
   if (loading) {
-    return <p className="text-gray-500">Загрузка...</p>
+    return <p className={mutedTextClass}>Загрузка...</p>
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Молитвы</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Сферы молитвы и как они меняются со временем
-          </p>
+          <h1 className={pageTitleClass}>Молитвы</h1>
+          <p className={`${mutedTextClass} mt-1`}>Сферы молитвы и как они меняются со временем</p>
         </div>
         <Link
           to="/prayers/new"
@@ -110,43 +135,47 @@ export default function PrayersPage() {
         </Link>
       </div>
 
-      {error && (
-        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-3">
-          {error}
-        </p>
-      )}
+      {error && <p className={errorBoxClass}>{error}</p>}
 
       {topics.length === 0 ? (
-        <div className="bg-white border border-gray-200 rounded-lg p-8 text-center">
-          <p className="text-gray-500 mb-4">Пока нет сфер молитвы</p>
+        <div className={`${cardClass} p-8 text-center`}>
+          <p className={mutedTextClass}>Пока нет сфер молитвы</p>
           <Link
             to="/prayers/new"
-            className="text-violet-600 hover:text-violet-800 font-medium text-sm"
+            className="inline-block mt-4 text-sm text-violet-600 hover:text-violet-800 dark:text-violet-400 font-medium"
           >
             Создать первую →
           </Link>
         </div>
       ) : (
         <div className="space-y-6">
-          {STATUS_ORDER.map((status) => {
-            const items = grouped.get(status) ?? []
-            if (items.length === 0) return null
+          {ACTIVE_STATUSES.map((status) => (
+            <TopicSection key={status} status={status} items={grouped.get(status) ?? []} />
+          ))}
 
-            return (
-              <section key={status}>
-                <h2 className="text-sm font-medium text-gray-500 mb-2">
-                  {STATUS_SECTION_LABELS[status]}
-                </h2>
-                <ul className="bg-white border border-gray-200 rounded-lg divide-y divide-gray-100">
-                  {items.map((topic) => (
-                    <li key={topic.id}>
-                      <TopicCard topic={topic} />
-                    </li>
+          {archiveTopics.length > 0 && (
+            <section>
+              <button
+                type="button"
+                onClick={() => setArchiveOpen((value) => !value)}
+                className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 mb-2"
+              >
+                <span className="text-xs">{archiveOpen ? '▼' : '▶'}</span>
+                Архив
+                <span className="text-xs font-normal text-gray-400 dark:text-gray-500">
+                  ({archiveTopics.length})
+                </span>
+              </button>
+
+              {archiveOpen && (
+                <div className="space-y-6 pl-1">
+                  {ARCHIVE_STATUSES.map((status) => (
+                    <TopicSection key={status} status={status} items={grouped.get(status) ?? []} />
                   ))}
-                </ul>
-              </section>
-            )
-          })}
+                </div>
+              )}
+            </section>
+          )}
         </div>
       )}
     </div>

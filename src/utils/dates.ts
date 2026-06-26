@@ -30,6 +30,49 @@ export function formatShortDate(dateStr: string): string {
   })
 }
 
+function parseLocalDate(dateStr: string): Date {
+  return new Date(`${dateStr}T12:00:00`)
+}
+
+/** Понедельник недели, в которую попадает dateStr */
+export function getWeekStart(dateStr: string): string {
+  const date = parseLocalDate(dateStr)
+  const weekday = date.getDay()
+  const diff = weekday === 0 ? -6 : 1 - weekday
+  date.setDate(date.getDate() + diff)
+  return localDateString(date)
+}
+
+export function addDays(dateStr: string, days: number): string {
+  const date = parseLocalDate(dateStr)
+  date.setDate(date.getDate() + days)
+  return localDateString(date)
+}
+
+export function getWeekDates(weekStart: string): string[] {
+  return Array.from({ length: 7 }, (_, index) => addDays(weekStart, index))
+}
+
+export function formatWeekRange(weekStart: string): string {
+  const weekEnd = addDays(weekStart, 6)
+  const startLabel = new Date(`${weekStart}T00:00:00`).toLocaleDateString('ru-RU', {
+    day: 'numeric',
+    month: 'short',
+  })
+  const endLabel = new Date(`${weekEnd}T00:00:00`).toLocaleDateString('ru-RU', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
+  return `${startLabel} — ${endLabel}`
+}
+
+export function previewText(text: string, maxLength = 120): string {
+  const trimmed = text.trim().replace(/\s+/g, ' ')
+  if (trimmed.length <= maxLength) return trimmed
+  return `${trimmed.slice(0, maxLength)}…`
+}
+
 /** "13:00:00" → "13:00" */
 export function formatTime(time: string | null | undefined): string {
   if (!time) return ''

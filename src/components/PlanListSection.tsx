@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { PlanItem } from '../types'
+import { cardClass, inputClass, mutedTextClass, sectionTitleClass } from '../utils/ui'
 
 function PlanRow({
   plan,
@@ -32,14 +33,14 @@ function PlanRow({
         value={content}
         onChange={(e) => setContent(e.target.value)}
         onBlur={save}
-        className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+        className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-100"
       />
       <input
         type="time"
         value={time}
         onChange={(e) => setTime(e.target.value)}
         onBlur={save}
-        className="w-28 px-2 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+        className="w-28 px-2 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-100"
       />
       <button
         type="button"
@@ -89,14 +90,14 @@ export default function PlanListSection({
   }
 
   return (
-    <section className="bg-white border border-gray-200 rounded-lg p-5 space-y-3">
+    <section className={`${cardClass} p-5 space-y-3`}>
       <div>
-        <h2 className="text-lg font-medium text-gray-900">{title}</h2>
-        {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
+        <h2 className={sectionTitleClass}>{title}</h2>
+        {subtitle && <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{subtitle}</p>}
       </div>
 
       {plans.length === 0 ? (
-        <p className="text-sm text-gray-500">{emptyMessage}</p>
+        <p className={mutedTextClass}>{emptyMessage}</p>
       ) : (
         <ul className="space-y-2">
           {plans.map((plan) => (
@@ -122,23 +123,23 @@ export default function PlanListSection({
             }
           }}
           placeholder={placeholder}
-          className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+          className={`${inputClass} flex-1`}
         />
         <input
           type="time"
           value={newPlanTime}
           onChange={(e) => setNewPlanTime(e.target.value)}
-          className="w-full sm:w-28 px-2 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+          className={`${inputClass} w-full sm:w-28 px-2`}
         />
         <button
           type="button"
           onClick={() => void handleAdd()}
-          className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-200 shrink-0"
+          className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-200 shrink-0 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
         >
           Добавить
         </button>
       </div>
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
     </section>
   )
 }

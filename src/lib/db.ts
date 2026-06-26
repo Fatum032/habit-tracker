@@ -193,6 +193,79 @@ export async function fetchDailyEntry(
   return data ? mapDailyEntry(data as DailyEntryRow) : null
 }
 
+export async function fetchDailyEntriesJournal(userId: string): Promise<DailyEntry[]> {
+  const { data, error } = await supabase
+    .from('daily_entries')
+    .select('*')
+    .eq('user_id', userId)
+    .neq('spiritual_analysis', '')
+    .order('entry_date', { ascending: false })
+
+  if (error) throw new Error(error.message)
+  return (data as DailyEntryRow[]).map(mapDailyEntry)
+}
+
+export async function fetchDailyEntriesInRange(
+  userId: string,
+  startDate: string,
+  endDate: string
+): Promise<DailyEntry[]> {
+  const { data, error } = await supabase
+    .from('daily_entries')
+    .select('*')
+    .eq('user_id', userId)
+    .gte('entry_date', startDate)
+    .lte('entry_date', endDate)
+    .order('entry_date', { ascending: true })
+
+  if (error) throw new Error(error.message)
+  return (data as DailyEntryRow[]).map(mapDailyEntry)
+}
+
+export async function fetchHabitLogCountsByDate(
+  userId: string,
+  startDate: string,
+  endDate: string
+): Promise<Record<string, number>> {
+  const { data, error } = await supabase
+    .from('habit_logs')
+    .select('log_date')
+    .eq('user_id', userId)
+    .gte('log_date', startDate)
+    .lte('log_date', endDate)
+
+  if (error) throw new Error(error.message)
+
+  const counts: Record<string, number> = {}
+  for (const row of data ?? []) {
+    const date = row.log_date as string
+    counts[date] = (counts[date] ?? 0) + 1
+  }
+  return counts
+}
+
+export async function fetchPrayerEntryCountsByDate(
+  userId: string,
+  startDate: string,
+  endDate: string
+): Promise<Record<string, number>> {
+  const { data, error } = await supabase
+    .from('prayer_entries')
+    .select('entry_date')
+    .eq('user_id', userId)
+    .gte('entry_date', startDate)
+    .lte('entry_date', endDate)
+
+  if (error) throw new Error(error.message)
+
+  const counts: Record<string, number> = {}
+  for (const row of data ?? []) {
+    const date = row.entry_date as string
+    counts[date] = (counts[date] ?? 0) + 1
+  }
+  return counts
+}
+
 export async function saveDailyEntry(
   userId: string,
   entryDate: string,

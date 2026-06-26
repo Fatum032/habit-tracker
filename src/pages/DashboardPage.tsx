@@ -4,6 +4,7 @@ import EventsSidebar from '../components/EventsSidebar'
 import PlanListSection from '../components/PlanListSection'
 import { useTracker } from '../context/TrackerContext'
 import { formatDisplayDate, todayString, tomorrowString } from '../utils/dates'
+import { cardClass, errorBoxClass, inputClass, mutedTextClass, pageTitleClass, sectionTitleClass } from '../utils/ui'
 
 export default function DashboardPage() {
   const {
@@ -52,7 +53,7 @@ export default function DashboardPage() {
   }
 
   if (loading) {
-    return <p className="text-gray-500">Загрузка...</p>
+    return <p className={mutedTextClass}>Загрузка...</p>
   }
 
   return (
@@ -61,33 +62,29 @@ export default function DashboardPage() {
 
       <div className="space-y-6 min-w-0">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 capitalize">{todayLabel}</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <h1 className={`${pageTitleClass} capitalize`}>{todayLabel}</h1>
+          <p className={`${mutedTextClass} mt-1`}>
             Привычки: {completedCount} из {habits.length}
           </p>
         </div>
 
-        {error && (
-          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-3">
-            {error}
-          </p>
-        )}
+        {error && <p className={errorBoxClass}>{error}</p>}
 
-        <section className="bg-white border border-gray-200 rounded-lg p-5 space-y-3">
+        <section className={`${cardClass} p-5 space-y-3`}>
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-lg font-medium text-gray-900">Привычки</h2>
+            <h2 className={sectionTitleClass}>Привычки</h2>
             <Link
               to="/habits/new"
-              className="text-sm text-violet-600 hover:text-violet-800 font-medium"
+              className="text-sm text-violet-600 hover:text-violet-800 dark:text-violet-400 font-medium"
             >
               + Добавить
             </Link>
           </div>
 
           {habits.length === 0 ? (
-            <p className="text-sm text-gray-500">
+            <p className={mutedTextClass}>
               Пока нет привычек.{' '}
-              <Link to="/habits/new" className="text-violet-600 hover:underline">
+              <Link to="/habits/new" className="text-violet-600 hover:underline dark:text-violet-400">
                 Создай первую
               </Link>
             </p>
@@ -102,13 +99,13 @@ export default function DashboardPage() {
                         type="checkbox"
                         checked={done}
                         onChange={() => void toggleHabit(habit.id)}
-                        className="h-4 w-4 rounded border-gray-300 text-violet-600 focus:ring-violet-500"
+                        className="h-4 w-4 rounded border-gray-300 text-violet-600 focus:ring-violet-500 dark:border-gray-600"
                       />
                       <span
                         className={`text-sm transition-colors ${
                           done
-                            ? 'line-through text-gray-400'
-                            : 'text-gray-800 group-hover:text-gray-900'
+                            ? 'line-through text-gray-400 dark:text-gray-500'
+                            : 'text-gray-800 group-hover:text-gray-900 dark:text-gray-200 dark:group-hover:text-gray-100'
                         }`}
                       >
                         {habit.title}
@@ -131,17 +128,19 @@ export default function DashboardPage() {
           onRemove={(id) => void removePlan(id)}
         />
 
-        <section className="bg-white border border-gray-200 rounded-lg p-5 space-y-3">
-          <h2 className="text-lg font-medium text-gray-900">Духовный анализ</h2>
+        <section className={`${cardClass} p-5 space-y-3`}>
+          <h2 className={sectionTitleClass}>Духовный анализ</h2>
           <textarea
             value={analysisDraft}
             onChange={(e) => setAnalysisDraft(e.target.value)}
             rows={5}
             placeholder="Что Бог показал тебе сегодня? За что благодарен?"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 resize-y"
+            className={`${inputClass} resize-y`}
           />
-          {analysisError && <p className="text-sm text-red-600">{analysisError}</p>}
-          {analysisMessage && <p className="text-sm text-green-700">{analysisMessage}</p>}
+          {analysisError && <p className="text-sm text-red-600 dark:text-red-400">{analysisError}</p>}
+          {analysisMessage && (
+            <p className="text-sm text-green-700 dark:text-green-400">{analysisMessage}</p>
+          )}
           <button
             type="button"
             onClick={() => void handleSaveAnalysis()}
