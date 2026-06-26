@@ -25,12 +25,15 @@ export default function Layout() {
             <Link to="/" className="text-xl font-semibold text-gray-900">
               Духовный трекер
             </Link>
-            <nav className="flex items-center gap-1">
+            <nav className="flex items-center gap-1 flex-wrap">
               <NavLink to="/" end className={navLinkClass}>
                 Сегодня
               </NavLink>
               <NavLink to="/habits" className={navLinkClass}>
                 Привычки
+              </NavLink>
+              <NavLink to="/scriptures" className={navLinkClass}>
+                Местописания
               </NavLink>
             </nav>
           </div>
