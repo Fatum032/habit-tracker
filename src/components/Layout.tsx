@@ -35,6 +35,9 @@ export default function Layout() {
               <NavLink to="/scriptures" className={navLinkClass}>
                 Местописания
               </NavLink>
+              <NavLink to="/prayers" className={navLinkClass}>
+                Молитвы
+              </NavLink>
             </nav>
           </div>
           <div className="flex items-center gap-3">

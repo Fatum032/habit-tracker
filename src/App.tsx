@@ -10,6 +10,9 @@ import HabitsPage from './pages/HabitsPage'
 import LoginPage from './pages/LoginPage'
 import ProfilePage from './pages/ProfilePage'
 import ScripturesPage from './pages/ScripturesPage'
+import PrayersPage from './pages/PrayersPage'
+import PrayerNewPage from './pages/PrayerNewPage'
+import PrayerTopicPage from './pages/PrayerTopicPage'
 
 export default function App() {
   return (
@@ -25,6 +28,9 @@ export default function App() {
                 <Route path="/habits/new" element={<HabitNewPage />} />
                 <Route path="/habits/:id/edit" element={<HabitEditPage />} />
                 <Route path="/scriptures" element={<ScripturesPage />} />
+                <Route path="/prayers" element={<PrayersPage />} />
+                <Route path="/prayers/new" element={<PrayerNewPage />} />
+                <Route path="/prayers/:id" element={<PrayerTopicPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
               </Route>
             </Route>

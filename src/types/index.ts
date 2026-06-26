@@ -32,3 +32,32 @@ export interface CalendarEvent {
   eventTime: string
   createdAt: string
 }
+
+export type PrayerTopicStatus = 'active' | 'waiting' | 'answered' | 'closed'
+export type PrayerEntryType = 'request' | 'update' | 'answered'
+
+export interface PrayerTopic {
+  id: string
+  userId: string
+  title: string
+  description: string
+  status: PrayerTopicStatus
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PrayerEntry {
+  id: string
+  userId: string
+  topicId: string
+  entryDate: string
+  content: string
+  entryType: PrayerEntryType
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PrayerTopicWithMeta extends PrayerTopic {
+  lastEntryDate: string | null
+  lastEntryPreview: string | null
+}
