@@ -1,3 +1,6 @@
+/** Новый «день» трекера начинается в 4:00 (локальное время), не в полночь */
+export const DAY_ROLLOVER_HOUR = 4
+
 function localDateString(date: Date): string {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
@@ -5,12 +8,23 @@ function localDateString(date: Date): string {
   return `${year}-${month}-${day}`
 }
 
+/** Текущий момент с учётом сдвига дня (00:00–03:59 → ещё «вчера») */
+function getLogicalNow(): Date {
+  const now = new Date()
+  if (now.getHours() < DAY_ROLLOVER_HOUR) {
+    const shifted = new Date(now)
+    shifted.setDate(shifted.getDate() - 1)
+    return shifted
+  }
+  return now
+}
+
 export function todayString(): string {
-  return localDateString(new Date())
+  return localDateString(getLogicalNow())
 }
 
 export function tomorrowString(): string {
-  const date = new Date()
+  const date = getLogicalNow()
   date.setDate(date.getDate() + 1)
   return localDateString(date)
 }
